@@ -8,21 +8,25 @@
 
     
     //PROCESS(example_broadcast_process, "Broadcast example");
-PROCESS(example_temperature, "Temp proc");
-AUTOSTART_PROCESSES(&example_temperature);
+PROCESS(assignment, "Assignment");
+AUTOSTART_PROCESSES(&assignment);
 /*---------------------------------------------------------------------------*/
 static const struct broadcast_callbacks broadcast_call;
 static struct broadcast_conn broadcast;
 /*---------------------------------------------------------------------------*/
 
-PROCESS_THREAD(example_temperature, ev, data)
+PROCESS_THREAD(assignment, ev, data)
 {
   static struct etimer et;
   static int counter = 0;
-  static int val;
+  static int valTemp;
   static int averageTemp = 0;
-  static float s = 0;
-  static int dec;
+  static float sTemp = 0;
+  static int decTemp;
+  static int valHum;
+  static int averageHum = 0;
+  static float = sHum = 0;
+  static int decHum;
   
 
 
@@ -35,24 +39,37 @@ PROCESS_THREAD(example_temperature, ev, data)
 	 //etimer_set(&et, CLOCK_SECOND * 2);
 	while(counter < 5)
 	{
-
+		//Activate sensors
 	  etimer_set(&et, CLOCK_SECOND * 2);
 	   SENSORS_ACTIVATE(sht11_sensor);
-        
+        //Trigger process start
 	   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-
-	   val = sht11_sensor.value(SHT11_SENSOR_TEMP);
+		
+		//Calculate average temperature
+	   valTemp = sht11_sensor.value(SHT11_SENSOR_TEMP);
 	   
-	   if(averageTemp != -1) 
+	   if(valTemp != -1) 
       	   {
-		s= ((0.01*val) - 39.60);
+		sTemp= ((0.01*valTemp) - 39.60);
            }
-           dec = s;
-	   averageTemp = averageTemp + dec;
+           decTemp = sTemp;
+	   averageTemp = averageTemp + decTemp;
+	   
+	   //Calculate average humidity
+	   val=sht11_sensor.value(SHT11_SENSOR_HUMIDITY);
+	   
+	   if(valHum != -1) 
+      	   {
+		sHum= (((0.0405*valHum) - 4) + ((-2.8 * 0.000001)*(pow(valHum,2))));               
+           }
+           decHum = sHum; 
+           averageHum = averageHum + decHum;
            counter++;
 	}
+	averageHum = averageHum/5;
 	averageTemp = averageTemp/5;
 	printf("\nAverage temperature=%d C\n", averageTemp);
+	printf("\nAverage temperature=%d C\n", averageHum);
 	
   while(1) {
 
@@ -65,6 +82,10 @@ PROCESS_THREAD(example_temperature, ev, data)
     broadcast_send(&broadcast);
     printf("broadcast message sent\n");
   }
+  
+ 		 etimer_reset(&et);
+    	 SENSORS_DEACTIVATE(sht11_sensor);
+
 
   PROCESS_END();
 }
