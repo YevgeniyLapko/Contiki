@@ -37,6 +37,8 @@ struct broadcast_message {
 };
 
 
+int highestRSSI = 0;
+
 
 //Structure for each neighbor node
 
@@ -86,13 +88,14 @@ broadcast_recv(struct broadcast_conn *c, const rimeaddr_t *from)
 
 {
 
-
+   leds_on(LEDS_GREEN);
 
 struct neighbor *n;
 
    struct broadcast_message *m;
 
    m = packetbuf_dataptr();
+
 
 
 
@@ -145,6 +148,28 @@ struct neighbor *n;
     n->last_lqi = packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);
 
 
+	//Highest RSSI stored
+	if(packetbuf_attr(PACKETBUF_ATTR_RSSI) > highestRSSI)
+	{
+		highestRSSI = packetbuf_attr(PACKETBUF_ATTR_RSSI);
+	}
+
+	//Get the rime address of highest rssi
+
+        //for(n = list_head(neighbors_list); n != NULL; n = list_item_next(n)) {
+
+	//If the current address in the loop matches the received address then break out from the loop
+
+	//if(rimeaddr_cmp(&n->addr, from))
+
+	//{
+
+      		//break;
+
+    	//}
+
+   } //End forloop
+
 
   printf("broadcast message received from %d.%d: '%s'\n",
 
@@ -152,7 +177,7 @@ struct neighbor *n;
 
 
 
-printf("broadcast message received from %d.%d with RSSI %d, LQI %u\n",
+printf("broadcast message received from %d.%d with RSSI %d, LQI %u, highest so far %d\n" ,
 
          from->u8[0], from->u8[1],
 
@@ -160,7 +185,8 @@ printf("broadcast message received from %d.%d with RSSI %d, LQI %u\n",
 
          packetbuf_attr(PACKETBUF_ATTR_RSSI),
 
-         packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY));
+         packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY), highestRSSI);
+leds_off(LEDS_GREEN);
 
 }
 
