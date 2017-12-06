@@ -174,20 +174,12 @@ struct neighbor *n;
 
 	//Get the rime address of highest rssi
 
-        //for(n = list_head(neighbors_list); n != NULL; n = list_item_next(n)) {
-
-	//If the current address in the loop matches the received address then break out from the loop
-
-	//if(rimeaddr_cmp(&n->addr, from))
-
-	//{
-
-      		//break;
-
-    	//}
-
-   //} End forloop
-
+        for(n = list_head(neighbors_list); n != NULL; n = list_item_next(n)) {
+		if (highestRSSI < n->last_rssi)
+		{
+		  highestRSSI = n->last_rssi;
+		}
+	} 
 
 
 
@@ -200,6 +192,7 @@ printf("broadcast message received from %d.%d with RSSI %d, LQI %u, highest so f
          rss,
 
          packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY), highestRSSI);
+
 /*unicast_open(&uc, 146, &unicast_callbacks);
 rimeaddr_t addr;
 addr.u8[0] = 175;
