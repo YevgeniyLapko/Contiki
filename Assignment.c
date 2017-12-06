@@ -18,6 +18,9 @@
 
 #include "dev/leds.h"
 
+//#include "cc2420.h"
+
+#include "/home/user/contiki-2.7/core/dev/cc2420.h"
 
 
 
@@ -78,7 +81,17 @@ PROCESS(broadcast_process, "Broadcast");
 
 AUTOSTART_PROCESSES(&tempHum,&broadcast_process );
 
+//Receive unicast
+static void
+recv_uc(struct unicast_conn *c, const rimeaddr_t *from)
+{
+  printf("----- Unicast message received from %d.%d -----\n",
+         from->u8[0], from->u8[1]);
+  printf("-----Message: %s\n", (char *)packetbuf_dataptr());
+}
 
+static const struct unicast_callbacks unicast_callbacks = {recv_uc};
+static struct unicast_conn uc;
 
 //Broadcast received callback gets triggered when a broadcast message is received
 
@@ -87,7 +100,12 @@ static void
 broadcast_recv(struct broadcast_conn *c, const rimeaddr_t *from)
 
 {
-
+	static signed char rss;
+    static signed char rss_val;
+    static signed char rss_offset;
+	rss_val = cc2420_last_rssi;
+	rss = rss_val + rss_offset;
+unicast_open(&uc, 146, &unicast_callbacks);
    leds_on(LEDS_GREEN);
 
 struct neighbor *n;
@@ -108,7 +126,7 @@ struct neighbor *n;
 	if(rimeaddr_cmp(&n->addr, from))
 
 	{
-
+	  printf("\nAlready exists in the list!\n");
       		break;
 
     	}
@@ -168,12 +186,8 @@ struct neighbor *n;
 
     	//}
 
-   } //End forloop
+   //} End forloop
 
-
-  printf("broadcast message received from %d.%d: '%s'\n",
-
-         from->u8[0], from->u8[1], (char *)packetbuf_dataptr());
 
 
 
@@ -183,9 +197,15 @@ printf("broadcast message received from %d.%d with RSSI %d, LQI %u, highest so f
 
 
 
-         packetbuf_attr(PACKETBUF_ATTR_RSSI),
+         rss,
 
          packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY), highestRSSI);
+/*unicast_open(&uc, 146, &unicast_callbacks);
+rimeaddr_t addr;
+addr.u8[0] = 175;
+    addr.u8[1] = 135;
+unicast_send(&uc, &addr);*/
+
 leds_off(LEDS_GREEN);
 
 }
