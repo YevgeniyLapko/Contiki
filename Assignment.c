@@ -30,7 +30,8 @@
 
 
 /*---------------------------------------------------------------------------*/
-
+static int averageTemp = 0;
+static int averageHum = 0;
 //Structure for each broadcast message
 
 struct broadcast_message {
@@ -85,9 +86,11 @@ AUTOSTART_PROCESSES(&tempHum,&broadcast_process );
 static void
 recv_uc(struct unicast_conn *c, const rimeaddr_t *from)
 {
+  leds_on(LEDS_RED);
   printf("----- Unicast message received from %d.%d -----\n",
          from->u8[0], from->u8[1]);
-  printf("-----Message: %s\n", (char *)packetbuf_dataptr());
+  printf("-----Temperature: %s C\n", (char *)packetbuf_dataptr());
+  leds_off(LEDS_RED);
 }
 
 static const struct unicast_callbacks unicast_callbacks = {recv_uc};
@@ -100,6 +103,8 @@ static void
 broadcast_recv(struct broadcast_conn *c, const rimeaddr_t *from)
 
 {
+	char stringTemp[3];
+	sprintf(stringTemp, "%d", averageTemp);
 	static signed char rss;
     static signed char rss_val;
     static signed char rss_offset;
@@ -175,7 +180,7 @@ struct neighbor *n;
 	//Get the highest RSSI in the existing list
 
         for(n = list_head(neighbors_list); n != NULL; n = list_item_next(n)) {
-		if (highestRSSI < n->last_rssi)
+		if (highestRSSI > n->last_rssi)
 		{
 		  highestRSSI = n->last_rssi;
 		}
@@ -185,13 +190,14 @@ struct neighbor *n;
 	for(n = list_head(neighbors_list); n != NULL; n = list_item_next(n)) {
 		if (highestRSSI == n->last_rssi)
 		{
-		  packetbuf_copyfrom("Hello", 5);
+		  packetbuf_copyfrom(stringTemp, 3);
+			printf("Sending unicast message...\n");
 			unicast_send(&uc, &n->addr);
 		}
 	} 
 
 
-printf("broadcast message received from %d.%d with RSSI %d, LQI %u, highest so far %d\n" ,
+printf("\nBroadcast message received from %d.%d\n --- RSSI: %d ---\n --- LQI: %u ---\n --- Highest RSSI: %d ---\n" ,
 
          from->u8[0], from->u8[1],
 
@@ -201,11 +207,7 @@ printf("broadcast message received from %d.%d with RSSI %d, LQI %u, highest so f
 
          packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY), highestRSSI);
 
-/*unicast_open(&uc, 146, &unicast_callbacks);
-rimeaddr_t addr;
-addr.u8[0] = 175;
-    addr.u8[1] = 135;
-unicast_send(&uc, &addr);*/
+
 
 leds_off(LEDS_GREEN);
 
@@ -247,11 +249,11 @@ PROCESS_THREAD(broadcast_process, ev, data)
 
 
 
-    packetbuf_copyfrom("Assignment", 6);
+    packetbuf_copyfrom("Eugene", 6);
 
     broadcast_send(&broadcast);
 
-    printf("broadcast message sent\n");
+    printf("Sending broadcast message...\n");
 
   }
 
@@ -273,7 +275,7 @@ PROCESS_THREAD(tempHum, ev, data)
 
   static int valTemp;
 
-  static int averageTemp = 0;
+  //static int averageTemp = 0;
 
   static float sTemp = 0;
 
@@ -281,7 +283,7 @@ PROCESS_THREAD(tempHum, ev, data)
 
   static int valHum;
 
-  static int averageHum = 0;
+  //static int averageHum = 0;
 
   static float sHum = 0;
 
