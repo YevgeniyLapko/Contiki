@@ -361,9 +361,9 @@ PROCESS_THREAD(tempHum, ev, data)
 
 	averageTemp = averageTemp/5;
 
-	printf("\nAverage temperature=%d C\n", averageTemp);
+	printf("\nAverage temperature -------------> %d C\n", averageTemp);
 
-	printf("\nAverage humidity=%d\n", averageHum);
+	printf("\nAverage humidity -------------> %d %\n", averageHum);
 
 
 
