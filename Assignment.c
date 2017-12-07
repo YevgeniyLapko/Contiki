@@ -172,7 +172,7 @@ struct neighbor *n;
 		highestRSSI = packetbuf_attr(PACKETBUF_ATTR_RSSI);
 	}
 
-	//Get the rime address of highest rssi
+	//Get the highest RSSI in the existing list
 
         for(n = list_head(neighbors_list); n != NULL; n = list_item_next(n)) {
 		if (highestRSSI < n->last_rssi)
@@ -180,7 +180,15 @@ struct neighbor *n;
 		  highestRSSI = n->last_rssi;
 		}
 	} 
-
+	
+	//Loop through the list to get the rime address of the highest RSSI
+	for(n = list_head(neighbors_list); n != NULL; n = list_item_next(n)) {
+		if (highestRSSI == n->last_rssi)
+		{
+		  packetbuf_copyfrom("Hello", 5);
+			unicast_send(&uc, &n->addr);
+		}
+	} 
 
 
 printf("broadcast message received from %d.%d with RSSI %d, LQI %u, highest so far %d\n" ,
